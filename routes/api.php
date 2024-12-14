@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider and all of them will
 | be assigned to the "api" middleware group. Make something great!
 |
-*/
+*/ 
 
 
 Route::controller(\App\Http\Controllers\UserController::class)->group(function () {
@@ -76,6 +76,7 @@ Route::controller(\App\Http\Controllers\AppealController::class)->group(function
     Route::prefix('appeal')->group(function () {
         Route::middleware('auth:api')->group(function () {
             Route::get('/personal', 'personal');
+            Route::get('/search', 'search');
             Route::post('/', 'store');
 
             Route::middleware('role:admin|manager')->group(function () {

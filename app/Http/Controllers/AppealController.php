@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appeal;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -71,5 +72,26 @@ class AppealController extends Controller
         $appeal->delete();
 
         return response()->json();
+    }
+
+    public function search(Request $request)
+    {
+        $appeals = Appeal::where('id', "LIKE","%{$request->input("search")}%")
+            ->orWhere('message', "LIKE","%{$request->input("search")}%")
+            ->orWhereHas('type', function(Builder $query) use($request) {
+                $query->where('name', "LIKE", "%{$request->input("search")}%");
+            } )
+            ->orWhereHas('category', function (Builder $query) use ($request) {
+                $query->where('category_services.name', 'LIKE', "%{$request->input("search")}%");
+            });
+        
+        if ($request->input('type') === 'all') {
+            if (Auth::user()->role->code === 'client') {
+                return response()->json('forbidden', 403);
+            }
+            return $appeals->get();
+        }
+        return $appeals->where('user_id', Auth::id())->get();
+    
     }
 }
