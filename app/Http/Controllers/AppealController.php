@@ -84,14 +84,27 @@ class AppealController extends Controller
             ->orWhereHas('category', function (Builder $query) use ($request) {
                 $query->where('category_services.name', 'LIKE', "%{$request->input("search")}%");
             });
-        
+
         if ($request->input('type') === 'all') {
             if (Auth::user()->role->code === 'client') {
                 return response()->json('forbidden', 403);
             }
-            return $appeals->get();
+            return $appeals->get()->map(function ($item) {
+                $item->makeHidden(["status_id", "type_id", "user_id"]);
+                return [...$item->toArray(),
+                    "status" => $item->status,
+                    "type" => $item->type,
+                    "user" => $item->user,
+                ];
+            });
         }
-        return $appeals->where('user_id', Auth::id())->get();
-    
+        return $appeals->where('user_id', Auth::id())->get()->map(function ($item) {
+            $item->makeHidden(["status_id", "type_id", "user_id"]);
+            return [...$item->toArray(),
+                "status" => $item->status,
+                "type" => $item->type,
+                "user" => $item->user,
+            ];
+        });
     }
 }
